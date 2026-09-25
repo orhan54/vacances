@@ -1,4 +1,4 @@
-CREATE TABLE User_(
+CREATE TABLE Users(
    Id_User INT AUTO_INCREMENT,
    user_prenom VARCHAR(20) ,
    user_nom VARCHAR(30) ,
@@ -32,16 +32,16 @@ CREATE TABLE Reservation(
    Id_User INT NOT NULL,
    Id_Lieu INT NOT NULL,
    PRIMARY KEY(Id_Reservation),
-   FOREIGN KEY(Id_User) REFERENCES User_(Id_User),
+   FOREIGN KEY(Id_User) REFERENCES Users(Id_User),
    FOREIGN KEY(Id_Lieu) REFERENCES Lieu(Id_Lieu)
 );
 
-CREATE TABLE Like_(
+CREATE TABLE Likes(
    Id_User INT,
    Id_Lieu INT,
    like_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY(Id_User, Id_Lieu),
-   FOREIGN KEY(Id_User) REFERENCES User_(Id_User),
+   FOREIGN KEY(Id_User) REFERENCES Users(Id_User),
    FOREIGN KEY(Id_Lieu) REFERENCES Lieu(Id_Lieu)
 );
 
@@ -51,6 +51,6 @@ CREATE TABLE Commenter(
    contenu TEXT,
    commenter_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY(Id_User, Id_Lieu),
-   FOREIGN KEY(Id_User) REFERENCES User_(Id_User),
+   FOREIGN KEY(Id_User) REFERENCES Users(Id_User),
    FOREIGN KEY(Id_Lieu) REFERENCES Lieu(Id_Lieu)
 );
