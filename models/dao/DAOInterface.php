@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * Interface DAOInterface pour définir les méthodes CRUD.
+ */
 interface DAOInterface
 {
     public function create(object $object): bool;
@@ -11,6 +15,5 @@ interface DAOInterface
     public function delete(int $id): bool;
 
     public function findAll(): array;
-
-    public function findById(int $id): ?object;
+    
 }
