@@ -33,7 +33,7 @@ selon le pattern **Entité / DAO / Interface** :
   contrôleur/méthode à partir des paramètres `controller`, `action`, et `id` en `$_GET`.
 - **Controller** : orchestre une requête (appelle le DAO, inclut la bonne vue).
 - **Entity** : objet métier pur (propriétés typées, constructeur, getters/setters).
-- **DAOInterface** : contrat générique (`create`, `findAll`, `findById`, `update`, `delete`).
+- **DAOInterface** : contrat générique (`create`, `read`, `update`, `delete`, `findAll`).
 - **DAO** : implémente l'interface, exécute le SQL (requêtes préparées), convertit les
   lignes en objets Entité.
 - **View** : affichage HTML/Tailwind, reçoit ses données du contrôleur.
@@ -77,29 +77,29 @@ vacances/
 │       └── index.php
 ├── public/
 │   └── css/ (si besoin de CSS custom en complément de Tailwind)
-├── sql/
-│   └── schema.sql
+├── SQL/
+│   └── script.sql
 ├── index.php
 └── README.md
 ```
 
 ## Modèle de données
 
-5 tables, issues d'un MCD/MPD validé (voir `sql/schema.sql`) :
+5 tables, issues d'un MCD/MPD validé (voir `SQL/script.sql`) :
 
-| Table         | Rôle                                                  | Clé                                |
-| ------------- | ----------------------------------------------------- | ---------------------------------- |
-| `user`        | Comptes utilisateurs (admin / utilisateur)            | `id_user` (auto-incrémenté)        |
-| `lieu`        | Lieux de vacances proposés par un admin               | `id_lieu` (auto-incrémenté)        |
-| `reservation` | Réservations d'un lieu par un utilisateur (répétable) | `id_reservation` (auto-incrémenté) |
-| `commenter`   | Un commentaire par couple (utilisateur, lieu)         | composite `(id_user, id_lieu)`     |
-| `liker`       | Un like par couple (utilisateur, lieu)                | composite `(id_user, id_lieu)`     |
+| Table         | Rôle                                                                                            | Clé                                |
+| ------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `Users`       | Comptes utilisateurs (admin / utilisateur)                                                      | `Id_User` (auto-incrémenté)        |
+| `Lieu`        | Lieux de vacances proposés par un admin (nom, adresse, CP, téléphone, description, prix, image) | `Id_Lieu` (auto-incrémenté)        |
+| `Reservation` | Réservations d'un lieu par un utilisateur (répétable)                                           | `Id_Reservation` (auto-incrémenté) |
+| `Commenter`   | Un commentaire par couple (utilisateur, lieu)                                                   | composite `(Id_User, Id_Lieu)`     |
+| `Likes`       | Un like par couple (utilisateur, lieu)                                                          | composite `(Id_User, Id_Lieu)`     |
 
 ## Installation
 
 1. Cloner le dépôt dans le dossier `htdocs` de XAMPP.
 2. Démarrer Apache et MySQL depuis le panneau XAMPP.
-3. Créer une base de données (ex : `vacances`) dans phpMyAdmin, puis importer `sql/schema.sql`.
+3. Créer une base de données (ex : `vacances`) dans phpMyAdmin, puis importer `SQL/script.sql`.
 4. Renseigner les identifiants de connexion dans `config/Database.php`.
 5. Ouvrir `http://localhost/vacances/`.
 
@@ -136,10 +136,28 @@ refactor: extraction de la logique de connexion dans TaskDAO
 
 - [x] Modélisation MCD/MPD
 - [x] Création des tables SQL
-- [ ] Connexion Singleton
-- [ ] Entités et DAO
+- [x] Connexion Singleton
+- [x] Entité + DAO : `User` (CRUD testé : create, read, update, delete)
+- [x] Entité + DAO : `Lieu` (CRUD testé : create, read, update, delete)
+- [ ] Entité + DAO : `Reservation`
+- [ ] Entité + DAO : `Commentaire`
+- [ ] Entité + DAO : `Like`
 - [ ] Authentification (inscription, connexion, rôles)
-- [ ] CRUD des lieux (admin)
+- [ ] CRUD des lieux (admin, avec upload d'image)
 - [ ] Réservation, like, commentaire (utilisateur)
 - [ ] Habillage Tailwind
 - [ ] Hébergement en ligne
+
+## Conventions du DAO
+
+- Chaque DAO implémente `DAOInterface` : `create(object)`, `read(int $id)`, `update(object)`,
+  `delete(int $id)`, `findAll()`. Pas de `findById()` séparé — `read()` couvre déjà ce besoin.
+- Chaque méthode `create`/`update` vérifie le type réel de l'objet reçu (`instanceof`) avant
+  de l'utiliser, puisque l'interface accepte un `object` générique.
+- Les dates (`*_created_at`) sont converties en véritable objet `DateTime` dans le DAO au
+  moment de la lecture (`new DateTime($row['...'])`), et reformatées en chaîne
+  (`->format('Y-m-d H:i:s')`) au moment de l'écriture en base.
+- Seule `create()` sur `UserDAO` hache le mot de passe (`password_hash`) ; `update()` ne le
+  touche jamais, pour ne pas re-hacher un hash déjà stocké.
+- Convention de nommage : les classes/entités restent au singulier (`User`, `Lieu`), seul le
+  nom réel de la table SQL (`Users`, `Lieu`) est utilisé tel quel à l'intérieur des requêtes.

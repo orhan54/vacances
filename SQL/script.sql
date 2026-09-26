@@ -15,13 +15,17 @@ CREATE TABLE Users(
 
 CREATE TABLE Lieu(
    Id_Lieu INT AUTO_INCREMENT,
-   lieu_nom VARCHAR(50) ,
+   lieu_nom VARCHAR(50),
+   lieu_adresse VARCHAR(80),
+   lieu_cp VARCHAR(5),
+   lieu_telephone VARCHAR(20),
    lieu_description TEXT,
-   lieu_prix DECIMAL(15,2)  ,
-   lieu_image VARCHAR(250) ,
+   lieu_prix DECIMAL(15,2),
+   lieu_image VARCHAR(250),
    lieu_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY(Id_Lieu)
 );
+
 
 CREATE TABLE Reservation(
    Id_Reservation INT AUTO_INCREMENT,

@@ -1,8 +1,11 @@
 <?php
 
+/**
+ * Classe User pour représenter un utilisateur.
+ */
 class User
 {
-    private int $id;
+    private int $userId;
     private string $userPrenom;
     private string $userNom;
     private string $userAdresse;
@@ -14,8 +17,22 @@ class User
 
     private DateTime $userCreatedAt;
 
+    /**
+     * Constructeur de la classe User.
+     *
+     * @param int $userId L'ID de l'utilisateur.
+     * @param string $userPrenom Le prénom de l'utilisateur.
+     * @param string $userNom Le nom de l'utilisateur.
+     * @param string $userAdresse L'adresse de l'utilisateur.
+     * @param string $userCp Le code postal de l'utilisateur.
+     * @param string $userTelephone Le numéro de téléphone de l'utilisateur.
+     * @param string $userEmail L'adresse e-mail de l'utilisateur.
+     * @param string $userMp Le mot de passe de l'utilisateur.
+     * @param string $userRole Le rôle de l'utilisateur.
+     * @param DateTime $userCreatedAt La date de création de l'utilisateur.
+     */
     public function __construct(
-        int $id,
+        int $userId,
         string $userPrenom,
         string $userNom,
         string $userAdresse,
@@ -26,7 +43,7 @@ class User
         string $userRole,
         DateTime $userCreatedAt
     ) {
-        $this->id = $id;
+        $this->userId = $userId;
         $this->userPrenom = $userPrenom;
         $this->userNom = $userNom;
         $this->userAdresse = $userAdresse;
@@ -38,9 +55,12 @@ class User
         $this->userCreatedAt = $userCreatedAt;
     }
 
+    /**
+     * Getters et Setters pour les propriétés de l'utilisateur.
+     */
     public function getUserId(): int
     {
-        return $this->id;
+        return $this->userId;
     }
 
     public function setUserPrenom(string $userPrenom): void
