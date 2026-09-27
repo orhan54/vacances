@@ -55,14 +55,14 @@ vacances/
 │   │   ├── User.php
 │   │   ├── Lieu.php
 │   │   ├── Reservation.php
-│   │   ├── Commentaire.php
+│   │   ├── Commenter.php
 │   │   └── Like.php
 │   └── dao/
 │       ├── DAOInterface.php
 │       ├── UserDAO.php
 │       ├── LieuDAO.php
 │       ├── ReservationDAO.php
-│       ├── CommentaireDAO.php
+│       ├── CommenterDAO.php
 │       └── LikeDAO.php
 ├── views/
 │   ├── auth/
@@ -139,8 +139,8 @@ refactor: extraction de la logique de connexion dans TaskDAO
 - [x] Connexion Singleton
 - [x] Entité + DAO : `User` (CRUD testé : create, read, update, delete)
 - [x] Entité + DAO : `Lieu` (CRUD testé : create, read, update, delete)
-- [ ] Entité + DAO : `Reservation`
-- [ ] Entité + DAO : `Commentaire`
+- [x] Entité + DAO : `Reservation` (CRUD testé : create, read, update, delete)
+- [x] Entité + DAO : `Commenter` (CRUD testé : create, read, update, delete)
 - [ ] Entité + DAO : `Like`
 - [ ] Authentification (inscription, connexion, rôles)
 - [ ] CRUD des lieux (admin, avec upload d'image)
@@ -161,3 +161,6 @@ refactor: extraction de la logique de connexion dans TaskDAO
   touche jamais, pour ne pas re-hacher un hash déjà stocké.
 - Convention de nommage : les classes/entités restent au singulier (`User`, `Lieu`), seul le
   nom réel de la table SQL (`Users`, `Lieu`) est utilisé tel quel à l'intérieur des requêtes.
+- `Commenter` et `Likes` n'ont pas d'id auto-incrémenté propre : leur clé primaire est la
+  paire `(Id_User, Id_Lieu)`. Leurs entités n'ont donc pas de propriété `id`, et leurs DAO
+  identifient une ligne par ce couple plutôt que par un id unique.
