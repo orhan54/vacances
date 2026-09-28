@@ -141,7 +141,7 @@ refactor: extraction de la logique de connexion dans TaskDAO
 - [x] Entité + DAO : `Lieu` (CRUD testé : create, read, update, delete)
 - [x] Entité + DAO : `Reservation` (CRUD testé : create, read, update, delete)
 - [x] Entité + DAO : `Commenter` (CRUD testé : create, read, update, delete)
-- [ ] Entité + DAO : `Like`
+- [x] Entité + DAO : `Like` (CRUD testé : create, read, update, delete)
 - [ ] Authentification (inscription, connexion, rôles)
 - [ ] CRUD des lieux (admin, avec upload d'image)
 - [ ] Réservation, like, commentaire (utilisateur)
