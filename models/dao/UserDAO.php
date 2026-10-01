@@ -172,4 +172,37 @@ class UserDAO implements DAOInterface
         return $users;
     }
 
+    /**
+     * Récupère un utilisateur par son email.
+     *
+     * @param string $email L'email de l'utilisateur.
+     * @return User|null L'objet User correspondant ou null si non trouvé.
+     */
+    public function findByEmail(string $email): ?User
+    {
+        $sql = "SELECT * FROM Users WHERE user_email = :user_email";
+        $stmt = $this->connexion->prepare($sql);
+        $stmt->bindValue(':user_email', $email, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            return new User(
+                $result['Id_User'],
+                $result['user_prenom'],
+                $result['user_nom'],
+                $result['user_adresse'],
+                $result['user_cp'],
+                $result['user_telephone'],
+                $result['user_email'],
+                $result['user_mp'],
+                $result['user_role'],
+                new DateTime($result['user_created_at'])
+            );
+        }
+
+        return null;
+    }
+
 }

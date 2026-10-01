@@ -5,7 +5,7 @@
  */
 class Lieu
 {
-    private int $lieuId;
+    private ?int $lieuId;
     private string $lieuNom;
     private string $lieuAdresse;
     private string $lieuCp;
@@ -18,7 +18,7 @@ class Lieu
     /**
      * Constructeur de la classe Lieu.
      *
-     * @param int $lieuId L'ID du lieu.
+     * @param ?int $lieuId L'ID du lieu.
      * @param string $lieuNom Le nom du lieu.
      * @param string $lieuAdresse L'adresse du lieu.
      * @param string $lieuCp Le code postal du lieu.
@@ -29,7 +29,7 @@ class Lieu
      * @param DateTime $lieuCreatedAt La date de création du lieu.
      */
     public function __construct(
-        int $lieuId,
+        ?int $lieuId,
         string $lieuNom,
         string $lieuAdresse,
         string $lieuCp,
@@ -53,7 +53,7 @@ class Lieu
     /**
      * Getters et Setters pour les propriétés du lieu.
      */
-    public function getLieuId(): int
+    public function getLieuId(): ?int
     {
         return $this->lieuId;
     }

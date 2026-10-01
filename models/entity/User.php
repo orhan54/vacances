@@ -5,7 +5,7 @@
  */
 class User
 {
-    private int $userId;
+    private ?int $userId;
     private string $userPrenom;
     private string $userNom;
     private string $userAdresse;
@@ -20,7 +20,7 @@ class User
     /**
      * Constructeur de la classe User.
      *
-     * @param int $userId L'ID de l'utilisateur.
+     * @param ?int $userId L'ID de l'utilisateur.
      * @param string $userPrenom Le prénom de l'utilisateur.
      * @param string $userNom Le nom de l'utilisateur.
      * @param string $userAdresse L'adresse de l'utilisateur.
@@ -32,7 +32,7 @@ class User
      * @param DateTime $userCreatedAt La date de création de l'utilisateur.
      */
     public function __construct(
-        int $userId,
+        ?int $userId,
         string $userPrenom,
         string $userNom,
         string $userAdresse,
@@ -58,7 +58,7 @@ class User
     /**
      * Getters et Setters pour les propriétés de l'utilisateur.
      */
-    public function getUserId(): int
+    public function getUserId(): ?int
     {
         return $this->userId;
     }
