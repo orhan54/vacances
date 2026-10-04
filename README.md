@@ -12,6 +12,8 @@ utilisateurs de consulter, réserver, aimer et commenter ces lieux.
 - [Installation](#installation)
 - [Workflow Git](#workflow-git)
 - [État d'avancement](#état-davancement)
+- [Conventions du DAO](#conventions-du-dao)
+- [Authentification et rôles](#authentification-et-rôles)
 
 ## Stack technique
 
@@ -27,15 +29,19 @@ utilisateurs de consulter, réserver, aimer et commenter ces lieux.
 ## Architecture
 
 Le projet suit une architecture **MVC** maison (sans framework), avec un modèle structuré
-selon le pattern **Entité / DAO / Interface** :
+selon le pattern **Entité / DAO / Interface**, et une couche d'autorisation séparée :
 
-- **Router** (`index.php`) : point d'entrée unique, dispatch dynamique vers le bon
-  contrôleur/méthode à partir des paramètres `controller`, `action`, et `id` en `$_GET`.
-- **Controller** : orchestre une requête (appelle le DAO, inclut la bonne vue).
+- **Router** (`index.php`) : point d'entrée unique. Démarre la session (`session_start()`),
+  lit `controller`, `action` et `id` en `$_GET`, instancie dynamiquement le bon contrôleur
+  et appelle la bonne méthode (avec l'id en argument si présent).
+- **Controller** : orchestre une requête (appelle le DAO, inclut la bonne vue, applique les
+  règles d'accès via `Auth`).
 - **Entity** : objet métier pur (propriétés typées, constructeur, getters/setters).
 - **DAOInterface** : contrat générique (`create`, `read`, `update`, `delete`, `findAll`).
 - **DAO** : implémente l'interface, exécute le SQL (requêtes préparées), convertit les
   lignes en objets Entité.
+- **Auth** (`middleware/Auth.php`) : classe statique centralisant les vérifications de
+  session et de rôle (`estConnecte`, `estAdmin`, `exigerConnexion`, `exigerAdmin`).
 - **View** : affichage HTML/Tailwind, reçoit ses données du contrôleur.
 - **Database** (Singleton) : une seule connexion PDO réutilisée dans toute l'application.
 
@@ -46,10 +52,13 @@ vacances/
 ├── config/
 │   └── Database.php
 ├── controllers/
-│   ├── AuthController.php
+│   ├── UserController.php
 │   ├── LieuController.php
 │   ├── ReservationController.php
-│   └── UserController.php
+│   ├── CommenterController.php
+│   └── LikeController.php
+├── middleware/
+│   └── Auth.php
 ├── models/
 │   ├── entity/
 │   │   ├── User.php
@@ -101,7 +110,8 @@ vacances/
 2. Démarrer Apache et MySQL depuis le panneau XAMPP.
 3. Créer une base de données (ex : `vacances`) dans phpMyAdmin, puis importer `SQL/script.sql`.
 4. Renseigner les identifiants de connexion dans `config/Database.php`.
-5. Ouvrir `http://localhost/vacances/`.
+5. Ouvrir `http://localhost/vacances/` (affiche directement la liste des lieux, accessible
+   sans connexion).
 
 ## Workflow Git
 
@@ -115,21 +125,22 @@ Le projet suit un modèle à 3 niveaux de branches :
 ### Cycle pour une nouvelle fonctionnalité
 
 1. Se placer sur `dev` et la mettre à jour : `git checkout dev` puis `git pull`.
-2. Créer la branche de fonctionnalité : `git checkout -b feature/base-donnees`.
-3. Développer, committer régulièrement avec des messages clairs (convention ci-dessous).
-4. Pousser la branche : `git push -u origin feature/base-donnees`.
-5. Une fois la fonctionnalité terminée et testée, fusionner dans `dev` (via Pull Request sur
-   GitHub, ou merge local) : `git checkout dev` puis `git merge feature/base-donnees`.
-6. Quand `dev` est stable et prête à être publiée : fusionner `dev` dans `main`, puis
+2. Créer la branche de fonctionnalité : `git checkout -b feature/nom-du-module`.
+3. Développer, tester manuellement chaque méthode, puis committer avec des messages clairs.
+4. Pousser la branche : `git push -u origin feature/nom-du-module`.
+5. Fusionner dans `dev` : `git checkout dev` puis `git merge feature/nom-du-module`, `git push`.
+6. Nettoyer si besoin : `git branch -d feature/nom-du-module` puis
+   `git push origin --delete feature/nom-du-module`.
+7. Quand `dev` est stable et prête à être publiée : fusionner `dev` dans `main`, puis
    déployer sur l'hébergement.
 
 ### Convention de messages de commit
 
 ```
-feat: ajout de l'authentification utilisateur
-fix: correction de la contrainte unique sur les likes
-docs: mise à jour du README
-refactor: extraction de la logique de connexion dans TaskDAO
+feat: ajout d'une nouvelle fonctionnalite
+fix: correction d'un bug
+docs: mise a jour de la documentation
+refactor: reorganisation du code sans changement de comportement
 ```
 
 ## État d'avancement
@@ -140,12 +151,14 @@ refactor: extraction de la logique de connexion dans TaskDAO
 - [x] Entité + DAO : `User` (CRUD testé : create, read, update, delete)
 - [x] Entité + DAO : `Lieu` (CRUD testé : create, read, update, delete)
 - [x] Entité + DAO : `Reservation` (CRUD testé : create, read, update, delete)
-- [x] Entité + DAO : `Commenter` (CRUD testé : create, read, update, delete)
-- [x] Entité + DAO : `Like` (CRUD testé : create, read, update, delete)
-- [ ] Authentification (inscription, connexion, rôles)
-- [ ] CRUD des lieux (admin, avec upload d'image)
-- [ ] Réservation, like, commentaire (utilisateur)
-- [ ] Habillage Tailwind
+- [x] Entité + DAO : `Commenter` (create, findByUserAndLieu, update, deleteByUserAndLieu, findAll)
+- [x] Entité + DAO : `Like` (create, findByUserAndLieu, deleteByUserAndLieu, findAll)
+- [x] Authentification (inscription, connexion, déconnexion)
+- [x] Protection par rôle (classe `Auth`, appliquée sur `LieuController`)
+- [x] CRUD des lieux (admin) — `LieuController` complet et protégé
+- [ ] Upload réel d'image pour un lieu (actuellement un simple chemin texte)
+- [ ] Réservation, like, commentaire (actions utilisateur connecté)
+- [ ] Habillage Tailwind sur l'ensemble des vues
 - [ ] Hébergement en ligne
 
 ## Conventions du DAO
@@ -163,4 +176,23 @@ refactor: extraction de la logique de connexion dans TaskDAO
   nom réel de la table SQL (`Users`, `Lieu`) est utilisé tel quel à l'intérieur des requêtes.
 - `Commenter` et `Likes` n'ont pas d'id auto-incrémenté propre : leur clé primaire est la
   paire `(Id_User, Id_Lieu)`. Leurs entités n'ont donc pas de propriété `id`, et leurs DAO
-  identifient une ligne par ce couple plutôt que par un id unique.
+  n'implémentent pas `read()`/`delete()` au sens strict (ces deux méthodes lèvent une
+  exception) — ils exposent à la place `findByUserAndLieu()` et `deleteByUserAndLieu()`.
+
+## Authentification et rôles
+
+- `session_start()` est appelé une seule fois, tout en haut de `index.php` (le routeur),
+  pour que `$_SESSION` soit disponible dans tous les contrôleurs sans avoir à y penser.
+- À la connexion (`UserController::authenticate()`), 4 informations sont stockées en
+  session : `user_id`, `user_prenom`, `user_email`, `user_role`. Ça évite une requête SQL
+  supplémentaire sur chaque page pour ces infos de base, au prix d'un léger décalage
+  possible si le rôle est changé en base pendant qu'une session est active.
+- Les mots de passe sont hachés avec `password_hash()` (algorithme `PASSWORD_DEFAULT`) à
+  l'inscription, et vérifiés avec `password_verify()` à la connexion.
+- La classe statique `Auth` (`middleware/Auth.php`) centralise les contrôles d'accès :
+  - `Auth::estConnecte()` / `Auth::estAdmin()` : simples vérifications booléennes.
+  - `Auth::exigerConnexion()` : redirige vers le login si personne n'est connecté.
+  - `Auth::exigerAdmin()` : appelle `exigerConnexion()` puis redirige vers la liste des
+    lieux si la personne est connectée mais n'est pas admin.
+- Chaque méthode de contrôleur qui doit être protégée appelle `Auth::exigerAdmin()` (ou
+  `exigerConnexion()`) en toute première ligne, avant tout autre traitement.

@@ -10,11 +10,15 @@
  */
 
 /**
+ * Démarre la session PHP pour gérer les informations de session.
+ */
+session_start();
+/**
  * Récupère le nom du contrôleur et de l'action à partir des paramètres GET.
  * Si aucun paramètre n'est fourni, utilise les valeurs par défaut.
  */
-$controllerName = $_GET['controller'] ?? 'user';
-$action = $_GET['action'] ?? 'register';
+$controllerName = $_GET['controller'] ?? 'lieu';
+$action = $_GET['action'] ?? 'index';
 
 /**
  * Génère le nom de la classe du contrôleur à partir du nom du contrôleur.
@@ -69,6 +73,14 @@ if (!method_exists($controller, $action)) {
 }
 
 /**
- * Exécute l'action du contrôleur.
+ * Récupère l'identifiant (id) à partir des paramètres GET, si disponible.
+ * Si un identifiant est fourni, appelle l'action avec l'identifiant comme argument.
+ * Sinon, appelle l'action sans argument.
  */
-$controller->$action();
+$id = $_GET['id'] ?? null;
+
+if ($id !== null) {
+    $controller->$action($id);
+} else {
+    $controller->$action();
+}

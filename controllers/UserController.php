@@ -1,12 +1,16 @@
 <?php
 
-session_start();
-
 require_once __DIR__ . '/../models/entity/User.php';
 require_once __DIR__ . '/../models/dao/UserDAO.php';
 
 class UserController
 {
+    // Action pour afficher la liste des lieux
+    public function index(): void
+    {
+        require_once __DIR__ . '/../views/lieu/index.php';
+    }
+
     // Action pour afficher le formulaire d'inscription
     public function register(): void
     {
