@@ -1,6 +1,13 @@
-```php
 <?php
 
+/**
+ * Classe LikeDAO
+ *
+ * Cette classe gère les opérations CRUD pour l'entité Like.
+ * Elle implémente l'interface DAOInterface.
+ *
+ * @package models\dao
+ */
 require_once __DIR__ . '/../../config/Database.php';
 require_once __DIR__ . '/../entity/Like.php';
 include_once __DIR__ . '/DAOInterface.php';
@@ -90,7 +97,8 @@ class LikeDAO implements DAOInterface
     /**
      * Supprime un like.
      *
-     * La suppression se fait avec Id_User et Id_Lieu.
+     * Impossible d'utiliser un seul ID car Like possède
+     * une clé primaire composée de Id_User et Id_Lieu.
      *
      * @param int $id
      * @return bool
@@ -99,7 +107,7 @@ class LikeDAO implements DAOInterface
     {
         throw new Exception(
             "La méthode delete() n'est pas applicable à Like. "
-            . "Utilisez deleteLike()."
+            . "Utilisez deleteByUserAndLieu()."
         );
     }
 
@@ -215,7 +223,7 @@ class LikeDAO implements DAOInterface
      * @param int $lieuId
      * @return bool
      */
-    public function deleteLike(int $userId, int $lieuId): bool
+    public function deleteByUserAndLieu(int $userId, int $lieuId): bool
     {
         $sql = "DELETE FROM Likes
                 WHERE Id_User = :id_user
