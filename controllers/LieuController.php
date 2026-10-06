@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Contrôleur pour gérer les lieux.
+ */
 require_once __DIR__ . '/../middleware/Auth.php';
 require_once __DIR__ . '/../models/entity/Lieu.php';
 require_once __DIR__ . '/../models/dao/LieuDAO.php';
@@ -167,5 +170,22 @@ class LieuController
         }
 
         die('Une erreur est survenue lors de la suppression du lieu.');
+    }
+
+    /**
+     * Affiche les détails d'un lieu.
+     *
+     * @param int|string $id Identifiant du lieu.
+     */
+    public function show($id): void
+    {
+        $lieuDAO = new LieuDAO();
+        $lieu = $lieuDAO->read((int) $id);
+
+        if ($lieu === null) {
+            die('Lieu introuvable.');
+        }
+
+        require_once __DIR__ . '/../views/lieux/show.php';
     }
 }

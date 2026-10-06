@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Data Access Object (DAO) pour gérer les opérations CRUD sur les commentaires.
+ */
 require_once __DIR__ . '/../../config/Database.php';
 require_once __DIR__ . '/../entity/Commenter.php';
 include_once __DIR__ . '/DAOInterface.php';
@@ -174,6 +177,39 @@ class CommenterDAO implements DAOInterface
         }
 
         return null;
+    }
+
+    /**
+     * Récupère tous les commentaires d'un lieu.
+     *
+     * @param int $idLieu L'ID du lieu.
+     * @return array Un tableau d'objets Commenter.
+     */
+    public function findByLieu(int $idLieu): array
+    {
+        $sql = "SELECT *
+            FROM Commenter
+            WHERE Id_Lieu = :id_lieu
+            ORDER BY commenter_created_at DESC";
+
+        $stmt = $this->connexion->prepare($sql);
+
+        $stmt->bindValue(':id_lieu', $idLieu, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $commentaires = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $commentaires[] = new Commenter(
+                $row['Id_User'],
+                $row['Id_Lieu'],
+                $row['contenu'],
+                new DateTime($row['commenter_created_at'])
+            );
+        }
+
+        return $commentaires;
     }
 
     /**

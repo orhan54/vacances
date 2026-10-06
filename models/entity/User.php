@@ -14,7 +14,6 @@ class User
     private string $userEmail;
     private string $userMp;
     private string $userRole;
-
     private DateTime $userCreatedAt;
 
     /**
