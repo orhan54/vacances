@@ -156,6 +156,9 @@ refactor: reorganisation du code sans changement de comportement
 - [x] Authentification (inscription, connexion, déconnexion)
 - [x] Protection par rôle (classe `Auth`, appliquée sur `LieuController`)
 - [x] CRUD des lieux (admin) — `LieuController` complet et protégé
+- [x] Page détail d'un lieu (`show.php`) avec affichage des informations
+- [x] Commentaires : ajout, affichage, modification et suppression par l'utilisateur connecté
+- [x] Likes : ajout et retrait du Like par l'utilisateur connecté
 - [ ] Upload réel d'image pour un lieu (actuellement un simple chemin texte)
 - [ ] Réservation, like, commentaire (actions utilisateur connecté)
 - [ ] Habillage Tailwind sur l'ensemble des vues
