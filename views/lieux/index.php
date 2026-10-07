@@ -1,6 +1,19 @@
-<?php
+<?php foreach ($lieux as $lieu): ?>
 
-foreach ($lieux as $lieu) {
-    echo '<p>' . htmlspecialchars($lieu->getLieuNom()) . '</p>';
-    echo '<p>' . htmlspecialchars($lieu->getLieuAdresse()) . '</p>';
-}
+    <div class="lieu">
+
+        <p>
+            <?= htmlspecialchars($lieu->getLieuNom()) ?>
+        </p>
+
+        <p>
+            <?= htmlspecialchars($lieu->getLieuAdresse()) ?>
+        </p>
+
+        <a href="index.php?controller=reservation&action=create&id=<?= $lieu->getLieuId() ?>">
+            Réserver
+        </a>
+
+    </div>
+
+<?php endforeach; ?>

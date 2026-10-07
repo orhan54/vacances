@@ -95,7 +95,14 @@ class UserController
         $_SESSION['user_email'] = $user->getUserEmail();
         $_SESSION['user_role'] = $user->getUserRole();
 
-        echo 'Connexion réussie ! Bienvenue ' . htmlspecialchars($user->getUserPrenom());
+        header('Location: index.php?controller=user&action=welcome');
+        exit;
+    }
+
+    // Action pour afficher la page d'accueil après la connexion
+    public function welcome(): void
+    {
+        require __DIR__ . '/../views/auth/welcome.php';
     }
 
     // Action pour déconnecter l'utilisateur

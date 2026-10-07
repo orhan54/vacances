@@ -169,4 +169,108 @@ class ReservationDAO implements DAOInterface
 
         return $reservations;
     }
+
+    /**
+     * Récupère toutes les réservations d'un utilisateur spécifique.
+     *
+     * @param int $userId L'ID de l'utilisateur.
+     * @return array Un tableau d'objets Reservation.
+     */
+    public function findByUserId(int $userId): array
+    {
+        $sql = "SELECT
+                Id_Reservation AS id_reservation,
+                Id_User AS id_user,
+                Id_Lieu AS id_lieu,
+                reservation_date_debut,
+                reservation_date_fin,
+                reservation_status,
+                reservation_created_at
+            FROM Reservation
+            WHERE Id_User = :id_user
+            ORDER BY reservation_created_at DESC";
+
+        $stmt = $this->connexion->prepare($sql);
+
+        $stmt->bindValue(':id_user', $userId, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $reservations = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $reservations[] = new Reservation(
+                (int) $row['id_reservation'],
+                (int) $row['id_user'],
+                (int) $row['id_lieu'],
+                new DateTime($row['reservation_date_debut']),
+                new DateTime($row['reservation_date_fin']),
+                $row['reservation_status'],
+                new DateTime($row['reservation_created_at'])
+            );
+        }
+
+        return $reservations;
+    }
+
+    /**
+     * Vérifie si un lieu est disponible pour une période donnée.
+     *
+     * @param int $lieuId L'ID du lieu.
+     * @param DateTime $dateDebut La date de début de la réservation.
+     * @param DateTime $dateFin La date de fin de la réservation.
+     * @return bool True si le lieu est disponible, false sinon.
+     */
+    public function isAvailable(
+        int $lieuId,
+        DateTime $dateDebut,
+        DateTime $dateFin
+    ): bool {
+        $sql = "SELECT COUNT(*)
+            FROM Reservation
+            WHERE Id_Lieu = :id_lieu
+            AND reservation_status = 'confirmee'
+            AND reservation_date_debut < :date_fin
+            AND reservation_date_fin > :date_debut";
+
+        $stmt = $this->connexion->prepare($sql);
+
+        $stmt->bindValue(':id_lieu', $lieuId, PDO::PARAM_INT);
+        $stmt->bindValue(
+            ':date_fin',
+            $dateFin->format('Y-m-d H:i:s')
+        );
+        $stmt->bindValue(
+            ':date_debut',
+            $dateDebut->format('Y-m-d H:i:s')
+        );
+
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn() === 0;
+    }
+
+    /**
+     * Récupère toutes les réservations confirmées pour un lieu spécifique.
+     *
+     * @param int $lieuId L'ID du lieu.
+     * @return array Un tableau associatif contenant les dates de début et de fin des réservations confirmées.
+     */
+    public function findConfirmedByLieuId(int $lieuId): array
+    {
+        $sql = "SELECT
+                reservation_date_debut,
+                reservation_date_fin
+            FROM Reservation
+            WHERE Id_Lieu = :id_lieu
+            AND reservation_status = 'confirmee'
+            ORDER BY reservation_date_debut ASC";
+
+        $stmt = $this->connexion->prepare($sql);
+        $stmt->bindValue(':id_lieu', $lieuId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }
