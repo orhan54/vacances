@@ -34,7 +34,7 @@ class ReservationController
     {
         Auth::exigerConnexion();
 
-        $id_lieu = (int) ($_GET['id'] ?? 0);
+        $id_lieu = (int) ($_GET['id_lieu'] ?? 0);
 
         if ($id_lieu <= 0) {
             die('Lieu invalide.');
@@ -180,28 +180,5 @@ class ReservationController
         }
 
         die('Une erreur est survenue lors de l\'annulation de la réservation.');
-    }
-
-    /**
-     * Récupère toutes les réservations confirmées pour un lieu spécifique.
-     *
-     * @param int $lieuId L'ID du lieu.
-     * @return array Un tableau de réservations confirmées.
-     */
-    public function findConfirmedByLieuId(int $lieuId): array
-    {
-        $sql = "SELECT
-                reservation_date_debut,
-                reservation_date_fin
-            FROM Reservation
-            WHERE Id_Lieu = :id_lieu
-            AND reservation_status = 'confirmee'
-            ORDER BY reservation_date_debut ASC";
-
-        $stmt = $this->connexion->prepare($sql);
-        $stmt->bindValue(':id_lieu', $lieuId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

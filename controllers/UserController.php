@@ -110,7 +110,7 @@ class UserController
     {
         session_unset();
         session_destroy();
-        header('Location: index.php?controller=user&action=login');
+        header('Location: index.php?controller=auth&action=welcome');
         exit;
     }
 }

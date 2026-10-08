@@ -1,56 +1,156 @@
-# Vacances — Plateforme de réservation de lieux
+# 🏡 Vacances — Application de réservation de lieux
 
-Plateforme web permettant à un administrateur de proposer des lieux de vacances, et aux utilisateurs de consulter, réserver, aimer et commenter ces lieux.
+Application web de réservation de lieux développée en **PHP 8.2 orienté objet**, selon une architecture **MVC avec DAO**, permettant aux utilisateurs de consulter des lieux, les noter, les commenter, les aimer et effectuer des réservations.
 
-## Sommaire
+Les administrateurs disposent d'un espace permettant de gérer les lieux proposés à la réservation.
 
-- [Stack technique](#stack-technique)
-- [Architecture](#architecture)
-- [Arborescence du projet](#arborescence-du-projet)
-- [Modèle de données](#modèle-de-données)
-- [Installation](#installation)
-- [Workflow Git](#workflow-git)
-- [État d'avancement](#état-davancement)
-- [Conventions du DAO](#conventions-du-dao)
-- [Authentification et rôles](#authentification-et-rôles)
-- [Réservation et calendrier](#réservation-et-calendrier)
+---
 
-## Stack technique
+## 🚀 Fonctionnalités
 
-| Domaine             | Technologie                             |
-| ------------------- | --------------------------------------- |
-| Langage back-end    | PHP 8.2 (orienté objet, sans framework) |
-| Base de données     | MySQL                                   |
-| Accès aux données   | PDO, requêtes préparées                 |
-| Front-end           | HTML5, CSS, JavaScript                  |
-| Calendrier          | Flatpickr                               |
-| Serveur local       | XAMPP (Apache + MySQL)                  |
-| Gestion de versions | Git                                     |
+### 👤 Authentification
 
-## Architecture
+- Inscription utilisateur
+- Connexion utilisateur
+- Déconnexion
+- Hashage sécurisé des mots de passe avec `password_hash()`
+- Vérification des mots de passe avec `password_verify()`
+- Gestion des sessions PHP
+- Gestion des rôles utilisateur / administrateur
+- Protection des actions sensibles avec le middleware `Auth`
 
-Le projet suit une architecture **MVC** maison (sans framework), avec un modèle structuré selon le pattern **Entité / DAO / Interface**, et une couche d'autorisation séparée.
+### 🏠 Gestion des lieux
 
-- **Router** (`index.php`) : point d'entrée unique. Démarre la session (`session_start()`), lit `controller`, `action` et `id` en `$_GET`, instancie dynamiquement le bon contrôleur et appelle la bonne méthode.
-- **Controller** : orchestre une requête, appelle les DAO, inclut les vues et applique les règles d'accès via `Auth`.
-- **Entity** : objet métier pur avec propriétés typées, constructeur, getters et setters.
-- **DAOInterface** : définit le contrat générique des DAO avec `create`, `read`, `update`, `delete` et `findAll`.
-- **DAO** : implémente l'interface, exécute les requêtes SQL avec PDO et convertit les données de la base en objets Entité.
-- **Auth** (`middleware/Auth.php`) : classe statique centralisant les vérifications de session et de rôle (`estConnecte`, `estAdmin`, `exigerConnexion`, `exigerAdmin`).
-- **View** : affichage HTML et CSS, avec les données transmises par le contrôleur.
-- **JavaScript** : gère les interactions côté client, notamment le calendrier de réservation et le blocage visuel des périodes déjà réservées.
-- **Database** (Singleton) : fournit une seule connexion PDO réutilisée dans toute l'application.
+Les administrateurs peuvent :
 
-## Arborescence du projet
+- Ajouter un lieu
+- Modifier un lieu
+- Supprimer un lieu
+- Consulter la liste des lieux
+- Consulter le détail d'un lieu
+- Ajouter une image lors de la création d'un lieu
+- Afficher l'image associée au lieu
+- Gérer les informations :
+  - Nom
+  - Adresse
+  - Code postal
+  - Téléphone
+  - Description
+  - Prix par jour
+  - Image
+
+Les images sont contrôlées côté serveur :
+
+- Taille maximale : 5 Mo
+- Formats autorisés : JPG, PNG et WEBP
+- Génération d'un nom de fichier aléatoire
+- Stockage dans `public/images/`
+
+### ❤️ Likes
+
+Les utilisateurs connectés peuvent :
+
+- Ajouter un Like à un lieu
+- Retirer leur Like
+- Voir le nombre de Likes d'un lieu
+- Voir si le lieu a déjà été aimé par l'utilisateur connecté
+
+Le système utilise une clé primaire composée :
+
+```text
+(Id_User, Id_Lieu)
+```
+
+### ⭐ Commentaires et notation
+
+Les utilisateurs connectés peuvent :
+
+- Ajouter un commentaire
+- Modifier leur commentaire
+- Supprimer leur commentaire
+- Attribuer une note de 1 à 5 étoiles
+- Consulter les commentaires associés à un lieu
+
+La page des lieux affiche également :
+
+- La moyenne des notes
+- Le nombre total d'avis
+- La mention `Aucun avis` lorsqu'un lieu n'a encore reçu aucune note
+
+Le JavaScript dédié aux commentaires est situé dans :
+
+```text
+public/js/commentaires/App.js
+```
+
+### 📅 Réservations
+
+Les utilisateurs connectés peuvent :
+
+- Consulter un lieu
+- Accéder au formulaire de réservation
+- Sélectionner une date de début
+- Sélectionner une date de fin
+- Vérifier la disponibilité du lieu
+- Créer une réservation
+- Consulter leurs réservations
+- Annuler une réservation
+
+Les périodes déjà réservées et confirmées sont automatiquement bloquées dans le calendrier.
+
+Les réservations possèdent notamment les statuts :
+
+```text
+confirmee
+annulee
+```
+
+### 🗓️ Calendrier interactif
+
+Le calendrier des réservations utilise **Flatpickr**.
+
+Le JavaScript permet notamment :
+
+- L'affichage d'un calendrier interactif
+- La sélection des dates
+- Le blocage des périodes déjà réservées
+- La gestion des dates de début et de fin
+- Le contrôle côté client avant l'envoi du formulaire
+
+Le fichier principal est :
+
+```text
+public/js/reservations/App.js
+```
+
+---
+
+## 🏗️ Architecture du projet
+
+Le projet utilise une architecture **MVC + DAO** afin de séparer :
+
+- La logique métier
+- L'accès aux données
+- Les entités
+- Les contrôleurs
+- Les vues
+
+### 📁 Structure
 
 ```text
 vacances/
+│
+├── .env
+├── .gitignore
+├── index.php
+├── README.md
+│
 ├── config/
 │   └── Database.php
 │
 ├── controllers/
-│   ├── UserController.php
 │   ├── AuthController.php
+│   ├── UserController.php
 │   ├── LieuController.php
 │   ├── ReservationController.php
 │   ├── CommenterController.php
@@ -93,191 +193,449 @@ vacances/
 │
 ├── public/
 │   ├── css/
-│   │   ├── auth/
+|   |   ├── Auth/
 │   │   │   └── style.css
+│   │   │
 │   │   └── reservations/
 │   │       └── style.css
 │   │
-│   └── js/
-│       └── reservations/
-│           └── App.js
+│   ├── js/
+│   │   ├── reservations/
+│   │   │   └── App.js
+│   │   │
+│   │   └── commentaires/
+│   │       └── App.js
+│   │
+│   └── images/
+│       ├── BG/
+│       │   └── BG_welcome.jpg
+│       │
+│       └── [images des lieux]
 │
-├── SQL/
-│   └── script.sql
-│
-├── index.php
-└── README.md
+└── SQL/
+    └── script.sql
 ```
 
-## Modèle de données
+### ⚙️ Configuration
 
-5 tables, issues d'un MCD/MPD validé (voir `SQL/script.sql`) :
+Les paramètres de l'environnement local sont stockés dans le fichier `.env`, situé à la racine du projet.
 
-| Table         | Rôle                                                                                            | Clé                                |
-| ------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `Users`       | Comptes utilisateurs (admin / utilisateur)                                                      | `Id_User` (auto-incrémenté)        |
-| `Lieu`        | Lieux de vacances proposés par un admin (nom, adresse, CP, téléphone, description, prix, image) | `Id_Lieu` (auto-incrémenté)        |
-| `Reservation` | Réservations d'un lieu par un utilisateur                                                       | `Id_Reservation` (auto-incrémenté) |
-| `Commenter`   | Un commentaire par couple (utilisateur, lieu)                                                   | composite `(Id_User, Id_Lieu)`     |
-| `Likes`       | Un like par couple (utilisateur, lieu)                                                          | composite `(Id_User, Id_Lieu)`     |
+Le fichier `.env` contient les informations propres à l'environnement de développement et est exclu du dépôt Git grâce au `.gitignore`.
 
-La table `Reservation` contient notamment :
+Le fichier `.env` ne doit jamais être publié sur GitHub.
 
-- l'utilisateur ayant effectué la réservation ;
-- le lieu réservé ;
-- la date de début ;
-- la date de fin ;
-- le statut de la réservation (`confirmee` ou `annulee`) ;
-- la date de création de la réservation.
+---
 
-Les périodes déjà réservées sont récupérées depuis la base de données et affichées comme indisponibles dans le calendrier de réservation.
+## 🧩 Modèle de données
 
-## Installation
+L'application utilise actuellement **5 tables principales**.
 
-1. Cloner le dépôt dans le dossier `htdocs` de XAMPP.
-2. Démarrer Apache et MySQL depuis le panneau XAMPP.
-3. Créer une base de données, par exemple `vacances`, dans phpMyAdmin, puis importer `SQL/script.sql`.
-4. Renseigner les identifiants de connexion dans `config/Database.php`.
-5. Ouvrir :
+### 👤 User
+
+Gère les utilisateurs de l'application.
+
+Informations principales :
+
+- Identifiant
+- Prénom
+- Nom
+- Adresse
+- Code postal
+- Téléphone
+- Email
+- Mot de passe
+- Rôle
+- Date de création
+
+### 🏠 Lieu
+
+Représente les lieux disponibles à la réservation.
+
+Informations principales :
+
+- Identifiant
+- Nom
+- Adresse
+- Code postal
+- Téléphone
+- Description
+- Prix
+- Image
+- Date de création
+
+### 📅 Reservation
+
+Gère les réservations des utilisateurs.
+
+Informations principales :
+
+- Utilisateur
+- Lieu
+- Date de début
+- Date de fin
+- Statut
+- Date de création
+
+### 💬 Commenter
+
+Permet aux utilisateurs de laisser un avis et une note sur un lieu.
+
+Clé primaire composée :
+
+```text
+(Id_User, Id_Lieu)
+```
+
+Informations principales :
+
+- Utilisateur
+- Lieu
+- Contenu du commentaire
+- Note de 1 à 5
+- Date de création
+
+### ❤️ Like
+
+Permet à un utilisateur d'aimer un lieu.
+
+Clé primaire composée :
+
+```text
+(Id_User, Id_Lieu)
+```
+
+---
+
+## 🛠️ Technologies utilisées
+
+| Technologie  | Utilisation                             |
+| ------------ | --------------------------------------- |
+| PHP 8.2      | Back-end / programmation orientée objet |
+| MySQL        | Base de données                         |
+| PDO          | Accès sécurisé à la base de données     |
+| HTML5        | Structure des pages                     |
+| Tailwind CSS | Interface et mise en forme              |
+| JavaScript   | Interactions côté client                |
+| Flatpickr    | Calendrier des réservations             |
+| Lucide       | Icônes                                  |
+| Git / GitHub | Gestion de versions                     |
+| XAMPP        | Environnement de développement local    |
+
+---
+
+## 🔐 Sécurité
+
+Plusieurs mesures de sécurité sont mises en place :
+
+- Requêtes SQL préparées avec PDO
+- Hashage des mots de passe
+- Vérification des mots de passe
+- Gestion des sessions
+- Contrôle des rôles
+- Protection des actions administrateur
+- Vérification des données reçues
+- Échappement HTML avec `htmlspecialchars()`
+- Contrôle des fichiers uploadés
+- Vérification du type MIME des images
+- Limitation de la taille des images
+- Génération aléatoire des noms de fichiers
+- Protection du fichier `.env` avec `.gitignore`
+
+---
+
+## 🧱 Design Pattern et architecture
+
+Le projet utilise plusieurs principes et patterns.
+
+### MVC
+
+Séparation entre :
+
+```text
+Model
+View
+Controller
+```
+
+### DAO
+
+Chaque entité possède son propre DAO permettant de centraliser les requêtes SQL.
+
+```text
+User
+ └── UserDAO
+
+Lieu
+ └── LieuDAO
+
+Reservation
+ └── ReservationDAO
+
+Commenter
+ └── CommenterDAO
+
+Like
+ └── LikeDAO
+```
+
+### Singleton
+
+La connexion à la base de données est centralisée dans :
+
+```text
+config/Database.php
+```
+
+afin d'utiliser une connexion PDO unique.
+
+### Middleware
+
+La classe :
+
+```text
+middleware/Auth.php
+```
+
+permet notamment de vérifier :
+
+- si un utilisateur est connecté ;
+- si l'utilisateur possède le rôle administrateur.
+
+---
+
+## 🔄 Routage
+
+L'application utilise un point d'entrée unique :
+
+```text
+index.php
+```
+
+Le contrôleur et l'action sont transmis via les paramètres GET.
+
+Exemple :
+
+```text
+index.php?controller=lieu&action=index
+```
+
+Pour afficher un lieu :
+
+```text
+index.php?controller=lieu&action=show&id=8
+```
+
+Pour créer une réservation :
+
+```text
+index.php?controller=reservation&action=create&id_lieu=8
+```
+
+---
+
+## 📅 Gestion des disponibilités
+
+Lorsqu'un utilisateur souhaite réserver un lieu :
+
+1. Le lieu est récupéré depuis la base de données.
+2. Les réservations confirmées sont récupérées.
+3. Les périodes déjà réservées sont transmises au calendrier.
+4. `App.js` utilise ces informations avec Flatpickr.
+5. Les périodes indisponibles sont bloquées.
+6. Le serveur effectue également une vérification de disponibilité avant de créer la réservation.
+
+La vérification côté serveur reste obligatoire afin de garantir l'intégrité des réservations.
+
+---
+
+## 🔀 Gestion des versions avec Git
+
+Le projet utilise une organisation Git basée sur trois niveaux :
+
+```text
+main
+ │
+ └── dev
+      │
+      ├── feature/authentification
+      ├── feature/lieux
+      ├── feature/reservations
+      ├── feature/commentaires
+      └── feature/likes
+```
+
+### `main`
+
+Branche stable destinée à la version finale du projet.
+
+### `dev`
+
+Branche d'intégration regroupant les fonctionnalités validées.
+
+### `feature/*`
+
+Branches utilisées pour développer les nouvelles fonctionnalités.
+
+Exemple :
+
+```bash
+git checkout dev
+git pull origin dev
+
+git checkout -b feature/ma-fonctionnalite
+```
+
+Après développement et tests :
+
+```bash
+git add .
+git commit -m "feat: ajout de ma fonctionnalité"
+git push origin feature/ma-fonctionnalite
+```
+
+La branche peut ensuite être fusionnée dans `dev`.
+
+---
+
+## 📊 État d'avancement
+
+- [x] Modélisation MCD/MPD
+- [x] Création des tables SQL
+- [x] Connexion Singleton
+- [x] Entité + DAO : `User` (CRUD testé)
+- [x] Entité + DAO : `Lieu` (CRUD testé)
+- [x] Entité + DAO : `Reservation` (CRUD testé)
+- [x] Entité + DAO : `Commenter`
+- [x] Entité + DAO : `Like`
+- [x] Authentification (inscription, connexion, déconnexion)
+- [x] Hashage sécurisé des mots de passe
+- [x] Gestion des sessions
+- [x] Protection par rôle avec la classe `Auth`
+- [x] CRUD des lieux réservé à l'administrateur
+- [x] Upload réel d'image pour un lieu
+- [x] Contrôle du format et de la taille des images
+- [x] Interface Tailwind CSS
+- [x] JavaScript côté client avec `App.js`
+- [x] JavaScript dédié aux commentaires avec `commentaires/App.js`
+- [x] Calendrier interactif avec Flatpickr
+- [x] Page détail d'un lieu
+- [x] Ajout de commentaires
+- [x] Modification des commentaires
+- [x] Suppression des commentaires
+- [x] Système de notation de 1 à 5
+- [x] Calcul et affichage de la moyenne des avis
+- [x] Affichage du nombre d'avis
+- [x] Système de Likes
+- [x] Ajout et retrait d'un Like
+- [x] Affichage du nombre de Likes
+- [x] Réservation d'un lieu
+- [x] Vérification de disponibilité
+- [x] Blocage des périodes réservées dans le calendrier
+- [x] Affichage des réservations de l'utilisateur connecté
+- [x] Annulation d'une réservation
+- [x] Gestion des statuts `confirmee` et `annulee`
+- [x] Redirection après connexion avec le pattern Post/Redirect/Get
+- [x] Interface responsive
+- [x] Mise en place du fichier `.env`
+- [x] Protection du fichier `.env` avec `.gitignore`
+- [ ] Hébergement en ligne
+
+---
+
+## 🧪 Environnement de développement
+
+Le projet est actuellement développé en local avec :
+
+```text
+XAMPP
+├── Apache
+└── MySQL
+```
+
+Le projet est placé dans :
+
+```text
+C:\xampp\htdocs\vacances
+```
+
+L'application est accessible depuis :
 
 ```text
 http://localhost/vacances/
 ```
 
-La liste des lieux est accessible sans connexion.
+---
 
-Pour effectuer une réservation, l'utilisateur doit être connecté.
+## 🗃️ Base de données
 
-## Workflow Git
-
-Le projet suit un modèle à 3 niveaux de branches :
-
-- **`main`** — code stable, déployé/hébergé. On n'y pousse jamais directement.
-- **`dev`** — branche d'intégration, où les fonctionnalités terminées sont regroupées avant d'aller en production.
-- **`feature/nom-de-la-fonctionnalite`** — une branche par fonctionnalité, créée depuis `dev`.
-
-### Cycle pour une nouvelle fonctionnalité
-
-1. Se placer sur `dev` et la mettre à jour :
-
-```bash
-git checkout dev
-git pull
-```
-
-2. Créer la branche de fonctionnalité :
-
-```bash
-git checkout -b feature/nom-du-module
-```
-
-3. Développer, tester manuellement chaque méthode, puis committer avec des messages clairs.
-
-4. Pousser la branche :
-
-```bash
-git push -u origin feature/nom-du-module
-```
-
-5. Fusionner dans `dev` :
-
-```bash
-git checkout dev
-git merge feature/nom-du-module
-git push
-```
-
-6. Nettoyer si besoin :
-
-```bash
-git branch -d feature/nom-du-module
-git push origin --delete feature/nom-du-module
-```
-
-7. Quand `dev` est stable et prête à être publiée : fusionner `dev` dans `main`, puis déployer sur l'hébergement.
-
-### Convention de messages de commit
+Base de données utilisée :
 
 ```text
-feat: ajout d'une nouvelle fonctionnalite
-fix: correction d'un bug
-docs: mise a jour de la documentation
-refactor: reorganisation du code sans changement de comportement
+vacances
 ```
 
-## État d'avancement
+La connexion est gérée par :
 
-- [x] Modélisation MCD/MPD
-- [x] Création des tables SQL
-- [x] Connexion Singleton
-- [x] Entité + DAO : `User` (CRUD testé : create, read, update, delete)
-- [x] Entité + DAO : `Lieu` (CRUD testé : create, read, update, delete)
-- [x] Entité + DAO : `Reservation` (CRUD testé : create, read, update, delete)
-- [x] Entité + DAO : `Commenter` (create, findByUserAndLieu, update, deleteByUserAndLieu, findAll)
-- [x] Entité + DAO : `Like` (create, findByUserAndLieu, deleteByUserAndLieu, findAll)
-- [x] Authentification (inscription, connexion, déconnexion)
-- [x] Protection par rôle (classe `Auth`, appliquée sur `LieuController`)
-- [x] CRUD des lieux (admin) — `LieuController` complet et protégé
-- [x] Page détail d'un lieu (`show.php`) avec affichage des informations
-- [x] Commentaires : ajout, affichage, modification et suppression par l'utilisateur connecté
-- [x] Likes : ajout et retrait du Like par l'utilisateur connecté
-- [x] Réservation d'un lieu par un utilisateur connecté
-- [x] Vérification de disponibilité des périodes
-- [x] Blocage des périodes déjà réservées dans le calendrier
-- [x] Affichage des réservations de l'utilisateur connecté
-- [x] Annulation d'une réservation
-- [x] Gestion des statuts `confirmee` et `annulee`
-- [x] Redirection après connexion avec le pattern Post/Redirect/Get
-- [ ] Upload réel d'image pour un lieu (actuellement un simple chemin texte)
-- [ ] Habillage Tailwind sur l'ensemble des vues
+```text
+config/Database.php
+```
+
+Le script SQL permettant de créer la structure de la base est disponible dans :
+
+```text
+SQL/script.sql
+```
+
+---
+
+## 🎯 Objectifs du projet
+
+Ce projet a été réalisé afin de mettre en pratique et de démontrer des compétences en :
+
+- PHP orienté objet
+- Architecture MVC
+- DAO
+- SQL / MySQL
+- PDO
+- CRUD
+- Authentification
+- Gestion des sessions
+- Gestion des rôles
+- Sécurité web
+- Upload de fichiers
+- JavaScript
+- Manipulation du DOM
+- Tailwind CSS
+- Calendrier interactif
+- Gestion des réservations
+- Gestion des commentaires
+- Système de notation
+- Système de Likes
+- Git / GitHub
+- Organisation et structuration d'un projet web
+
+---
+
+## 🚧 Évolutions possibles
+
+Certaines améliorations pourront être ajoutées ultérieurement :
+
 - [ ] Hébergement en ligne
+- [ ] Gestion de plusieurs images par lieu
+- [ ] Galerie d'images
+- [ ] Système de réservation plus avancé
+- [ ] Tableau de bord administrateur
+- [ ] Gestion administrative des réservations
+- [ ] Notifications utilisateur
+- [ ] Amélioration des performances
+- [ ] Tests automatisés supplémentaires
 
-## Conventions du DAO
+---
 
-- Chaque DAO implémente `DAOInterface` : `create(object)`, `read(int $id)`, `update(object)`, `delete(int $id)`, `findAll()`. Pas de `findById()` séparé — `read()` couvre déjà ce besoin.
-- Chaque méthode `create`/`update` vérifie le type réel de l'objet reçu (`instanceof`) avant de l'utiliser, puisque l'interface accepte un `object` générique.
-- Les dates (`*_created_at`) sont converties en véritable objet `DateTime` dans le DAO au moment de la lecture (`new DateTime($row['...'])`), et reformatées en chaîne (`->format('Y-m-d H:i:s')`) au moment de l'écriture en base.
-- Seule `create()` sur `UserDAO` hache le mot de passe (`password_hash`) ; `update()` ne le touche jamais, pour ne pas re-hacher un hash déjà stocké.
-- Convention de nommage : les classes/entités restent au singulier (`User`, `Lieu`), seul le nom réel de la table SQL (`Users`, `Lieu`) est utilisé tel quel à l'intérieur des requêtes.
-- `Commenter` et `Likes` n'ont pas d'id auto-incrémenté propre : leur clé primaire est la paire `(Id_User, Id_Lieu)`. Leurs entités n'ont donc pas de propriété `id`, et leurs DAO n'implémentent pas `read()`/`delete()` au sens strict (ces deux méthodes lèvent une exception) — ils exposent à la place `findByUserAndLieu()` et `deleteByUserAndLieu()`.
-- `ReservationDAO` possède des méthodes spécifiques à la réservation, notamment `findByUserId()`, `isAvailable()` et `findConfirmedByLieuId()`, afin de récupérer les réservations d'un utilisateur et de vérifier les périodes déjà réservées.
+## 👨‍💻 Auteur
 
-## Authentification et rôles
+**Orhan Cicek**
 
-- `session_start()` est appelé une seule fois, tout en haut de `index.php` (le routeur), pour que `$_SESSION` soit disponible dans tous les contrôleurs sans avoir à y penser.
-- À la connexion (`UserController::authenticate()`), 4 informations sont stockées en session : `user_id`, `user_prenom`, `user_email`, `user_role`.
-- Les mots de passe sont hachés avec `password_hash()` (algorithme `PASSWORD_DEFAULT`) à l'inscription, et vérifiés avec `password_verify()` à la connexion.
-- La classe statique `Auth` (`middleware/Auth.php`) centralise les contrôles d'accès :
-  - `Auth::estConnecte()` / `Auth::estAdmin()` : simples vérifications booléennes.
-  - `Auth::exigerConnexion()` : redirige vers le login si personne n'est connecté.
-  - `Auth::exigerAdmin()` : appelle `exigerConnexion()` puis redirige vers la liste des lieux si la personne est connectée mais n'est pas admin.
-- Chaque méthode de contrôleur qui doit être protégée appelle `Auth::exigerAdmin()` ou `Auth::exigerConnexion()` en toute première ligne, avant tout autre traitement.
-- Après une connexion réussie, l'utilisateur est redirigé vers une page dédiée avec le pattern **Post/Redirect/Get**, ce qui évite les erreurs `ERR_CACHE_MISS` ou les demandes de renvoi du formulaire lors de l'utilisation du bouton précédent du navigateur.
-- La réservation nécessite une connexion utilisateur.
-- Un utilisateur ne peut consulter et annuler que ses propres réservations.
-- Un administrateur dispose des droits nécessaires à la gestion des lieux.
+Développeur Web / Concepteur Développeur d'Application
 
-## Réservation et calendrier
-
-Le système de réservation permet à un utilisateur connecté de :
-
-1. Consulter les lieux disponibles.
-2. Sélectionner un lieu.
-3. Ouvrir le calendrier de réservation.
-4. Visualiser les périodes déjà réservées.
-5. Sélectionner une période disponible.
-6. Enregistrer la réservation.
-7. Consulter ses réservations.
-8. Annuler une réservation.
-
-Le calendrier utilise **Flatpickr**.
-
-Les réservations confirmées sont récupérées depuis la base de données pour le lieu sélectionné. Les périodes correspondantes sont automatiquement désactivées et affichées comme indisponibles dans le calendrier.
-
-Chaque lieu possède son propre calendrier. Les disponibilités affichées correspondent uniquement aux réservations du lieu sélectionné.
-
-Lorsqu'une réservation est annulée, son statut passe à `annulee`. Elle n'est alors plus considérée comme bloquante pour une nouvelle réservation.
-
-La disponibilité est également vérifiée côté serveur avec `ReservationDAO::isAvailable()`, afin de ne pas dépendre uniquement du contrôle JavaScript côté client.
-
-Ainsi, même si deux utilisateurs tentent de réserver la même période, la vérification côté serveur empêche la création d'une réservation en conflit.
+Projet réalisé dans le cadre de mon parcours de formation et de ma recherche d'un contrat d'apprentissage en développement full-stack.

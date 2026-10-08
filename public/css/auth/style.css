@@ -17,3 +17,17 @@
 .button:hover {
   opacity: 0.85;
 }
+
+.welcome-page {
+  min-height: 100vh;
+  margin: 0;
+}
+
+.welcome-background {
+  position: relative;
+  min-height: 100vh;
+  background-image: url("../../images/BG/BG_welcome.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

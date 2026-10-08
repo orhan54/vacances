@@ -36,14 +36,28 @@ class CommenterDAO implements DAOInterface
             throw new InvalidArgumentException("L'objet doit être une instance de Commenter.");
         }
 
-        $sql = "INSERT INTO Commenter (Id_User, Id_Lieu, contenu, commenter_created_at) 
-                VALUES (:id_user, :id_lieu, :contenu, :commenter_created_at)";
+        $sql = "INSERT INTO Commenter (
+                    Id_User,
+                    Id_Lieu,
+                    contenu,
+                    note,
+                    commenter_created_at
+                )
+                VALUES (
+                    :id_user,
+                    :id_lieu,
+                    :contenu,
+                    :note,
+                    :commenter_created_at
+                )";
 
         $stmt = $this->connexion->prepare($sql);
 
         $stmt->bindValue(':id_user', $object->getUserId(), PDO::PARAM_INT);
         $stmt->bindValue(':id_lieu', $object->getLieuId(), PDO::PARAM_INT);
         $stmt->bindValue(':contenu', $object->getCommenterContenu(), PDO::PARAM_STR);
+        $stmt->bindValue(':note', $object->getNote(), PDO::PARAM_INT);
+
         $stmt->bindValue(
             ':commenter_created_at',
             $object->getCommenterCreatedAt()->format('Y-m-d H:i:s'),
@@ -86,14 +100,16 @@ class CommenterDAO implements DAOInterface
             throw new InvalidArgumentException("L'objet doit être une instance de Commenter.");
         }
 
-        $sql = "UPDATE Commenter 
-                SET contenu = :contenu 
-                WHERE Id_User = :id_user 
+        $sql = "UPDATE Commenter
+                SET contenu = :contenu,
+                    note = :note
+                WHERE Id_User = :id_user
                 AND Id_Lieu = :id_lieu";
 
         $stmt = $this->connexion->prepare($sql);
 
         $stmt->bindValue(':contenu', $object->getCommenterContenu(), PDO::PARAM_STR);
+        $stmt->bindValue(':note', $object->getNote(), PDO::PARAM_INT);
         $stmt->bindValue(':id_user', $object->getUserId(), PDO::PARAM_INT);
         $stmt->bindValue(':id_lieu', $object->getLieuId(), PDO::PARAM_INT);
 
@@ -134,9 +150,10 @@ class CommenterDAO implements DAOInterface
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $commentaires[] = new Commenter(
-                $row['Id_User'],
-                $row['Id_Lieu'],
+                (int) $row['Id_User'],
+                (int) $row['Id_Lieu'],
                 $row['contenu'],
+                (int) $row['note'],
                 new DateTime($row['commenter_created_at'])
             );
         }
@@ -169,9 +186,10 @@ class CommenterDAO implements DAOInterface
 
         if ($row) {
             return new Commenter(
-                $row['Id_User'],
-                $row['Id_Lieu'],
+                (int) $row['Id_User'],
+                (int) $row['Id_Lieu'],
                 $row['contenu'],
+                (int) $row['note'],
                 new DateTime($row['commenter_created_at'])
             );
         }
@@ -180,17 +198,22 @@ class CommenterDAO implements DAOInterface
     }
 
     /**
-     * Récupère tous les commentaires d'un lieu.
+     * Récupère tous les commentaires pour un lieu spécifique.
      *
      * @param int $idLieu L'ID du lieu.
      * @return array Un tableau d'objets Commenter.
      */
     public function findByLieu(int $idLieu): array
     {
-        $sql = "SELECT *
+        $sql = "SELECT
+                Commenter.*,
+                Users.user_prenom,
+                Users.user_nom
             FROM Commenter
-            WHERE Id_Lieu = :id_lieu
-            ORDER BY commenter_created_at DESC";
+            INNER JOIN Users
+                ON Commenter.Id_User = Users.Id_User
+            WHERE Commenter.Id_Lieu = :id_lieu
+            ORDER BY Commenter.commenter_created_at DESC";
 
         $stmt = $this->connexion->prepare($sql);
 
@@ -201,12 +224,20 @@ class CommenterDAO implements DAOInterface
         $commentaires = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $commentaires[] = new Commenter(
-                $row['Id_User'],
-                $row['Id_Lieu'],
+
+            $commentaire = new Commenter(
+                (int) $row['Id_User'],
+                (int) $row['Id_Lieu'],
                 $row['contenu'],
+                (int) $row['note'],
                 new DateTime($row['commenter_created_at'])
             );
+
+            // Informations sur l'auteur
+            $commentaire->setUserPrenom($row['user_prenom']);
+            $commentaire->setUserNom($row['user_nom']);
+
+            $commentaires[] = $commentaire;
         }
 
         return $commentaires;
@@ -221,8 +252,8 @@ class CommenterDAO implements DAOInterface
      */
     public function deleteByUserAndLieu(int $idUser, int $idLieu): bool
     {
-        $sql = "DELETE FROM Commenter 
-                WHERE Id_User = :id_user 
+        $sql = "DELETE FROM Commenter
+                WHERE Id_User = :id_user
                 AND Id_Lieu = :id_lieu";
 
         $stmt = $this->connexion->prepare($sql);
@@ -231,5 +262,33 @@ class CommenterDAO implements DAOInterface
         $stmt->bindValue(':id_lieu', $idLieu, PDO::PARAM_INT);
 
         return $stmt->execute();
+    }
+
+    /**
+     * Récupère la moyenne des notes et le nombre d'avis pour un lieu.
+     *
+     * @param int $idLieu L'identifiant du lieu.
+     * @return array{moyenne: float|null, nombre: int}
+     */
+    public function getRatingStatsByLieuId(int $idLieu): array
+    {
+        $sql = "SELECT
+                AVG(note) AS moyenne,
+                COUNT(*) AS nombre
+            FROM Commenter
+            WHERE Id_Lieu = :id_lieu";
+
+        $stmt = $this->connexion->prepare($sql);
+        $stmt->bindValue(':id_lieu', $idLieu, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return [
+            'moyenne' => $row['moyenne'] !== null
+                ? (float) $row['moyenne']
+                : null,
+            'nombre' => (int) $row['nombre']
+        ];
     }
 }
