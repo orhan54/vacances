@@ -193,7 +193,7 @@ vacances/
 │
 ├── public/
 │   ├── css/
-|   |   ├── Auth/
+│   │   ├── Auth/
 │   │   │   └── style.css
 │   │   │
 │   │   └── reservations/
@@ -497,6 +497,39 @@ La branche peut ensuite être fusionnée dans `dev`.
 
 ---
 
+## 🌐 Hébergement en ligne
+
+L'application **Vacances** est désormais déployée en ligne sur **AwardSpace**.
+
+L'hébergement comprend :
+
+- Hébergement PHP
+- PHP 8.4 côté serveur
+- Base de données MySQL
+- Connexion de l'application à la base MySQL distante
+- Déploiement des fichiers de l'application sur le serveur
+- Application accessible publiquement depuis un navigateur
+
+L'application est disponible à l'adresse suivante :
+
+**https://vacancesapp.atwebpages.com/**
+
+La base de données distante contient les tables :
+
+```text
+Users
+Lieu
+Reservation
+Commenter
+Likes
+```
+
+La configuration de connexion à la base de données est adaptée à l'environnement de production afin d'utiliser le serveur MySQL distant d'AwardSpace.
+
+Les informations sensibles de l'environnement local sont protégées par le fichier `.gitignore`.
+
+---
+
 ## 📊 État d'avancement
 
 - [x] Modélisation MCD/MPD
@@ -538,13 +571,15 @@ La branche peut ensuite être fusionnée dans `dev`.
 - [x] Interface responsive
 - [x] Mise en place du fichier `.env`
 - [x] Protection du fichier `.env` avec `.gitignore`
-- [ ] Hébergement en ligne
+- [x] Déploiement en ligne sur AwardSpace
+- [x] Connexion à une base de données MySQL distante
+- [x] Application accessible publiquement en ligne
 
 ---
 
 ## 🧪 Environnement de développement
 
-Le projet est actuellement développé en local avec :
+Le projet est développé en local avec :
 
 ```text
 XAMPP
@@ -558,23 +593,31 @@ Le projet est placé dans :
 C:\xampp\htdocs\vacances
 ```
 
-L'application est accessible depuis :
+L'application est accessible localement depuis :
 
 ```text
 http://localhost/vacances/
+```
+
+Une version de production est également disponible en ligne sur AwardSpace :
+
+```text
+https://vacancesapp.atwebpages.com/
 ```
 
 ---
 
 ## 🗃️ Base de données
 
-Base de données utilisée :
+### Environnement local
+
+Base de données :
 
 ```text
 vacances
 ```
 
-La connexion est gérée par :
+La connexion locale est gérée par :
 
 ```text
 config/Database.php
@@ -584,6 +627,20 @@ Le script SQL permettant de créer la structure de la base est disponible dans :
 
 ```text
 SQL/script.sql
+```
+
+### Environnement de production
+
+La version en ligne utilise une base de données **MySQL distante hébergée sur AwardSpace**.
+
+Les tables utilisées sont :
+
+```text
+Users
+Lieu
+Reservation
+Commenter
+Likes
 ```
 
 ---
@@ -612,7 +669,8 @@ Ce projet a été réalisé afin de mettre en pratique et de démontrer des comp
 - Système de notation
 - Système de Likes
 - Git / GitHub
-- Organisation et structuration d'un projet web
+- Déploiement d'une application web
+- Configuration d'un environnement de production
 
 ---
 
@@ -620,7 +678,6 @@ Ce projet a été réalisé afin de mettre en pratique et de démontrer des comp
 
 Certaines améliorations pourront être ajoutées ultérieurement :
 
-- [ ] Hébergement en ligne
 - [ ] Gestion de plusieurs images par lieu
 - [ ] Galerie d'images
 - [ ] Système de réservation plus avancé
