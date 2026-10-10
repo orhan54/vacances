@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../middleware/Auth.php';
 require_once __DIR__ . '/../../models/dao/LikeDAO.php';
 require_once __DIR__ . '/../../models/dao/CommenterDAO.php';
+require_once __DIR__ . '/../../middleware/Csrf.php';
 
 $likeDAO = new LikeDAO();
 $commenterDAO = new CommenterDAO();
@@ -224,6 +225,8 @@ header('Pragma: no-cache');
                 <div class="mt-8 pt-6 border-t">
 
                     <form method="post" action="index.php?controller=like&action=toggle" class="inline-flex">
+                        <input type="hidden" name="csrf_token"
+                            value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                         <input type="hidden" name="id_lieu" value="<?= $lieu->getLieuId() ?>">
 
@@ -459,6 +462,8 @@ header('Pragma: no-cache');
                                     <!-- Modifier son commentaire -->
 
                                     <form method="post" action="index.php?controller=commenter&action=update" class="space-y-4">
+                                        <input type="hidden" name="csrf_token"
+                                            value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                                         <input type="hidden" name="id_lieu" value="<?= $lieu->getLieuId() ?>">
 
@@ -523,6 +528,9 @@ header('Pragma: no-cache');
                                     <form method="post" action="index.php?controller=commenter&action=delete" class="mt-3"
                                         onsubmit="return confirm('Voulez-vous vraiment supprimer votre commentaire ?');">
 
+                                        <input type="hidden" name="csrf_token"
+                                            value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
+
                                         <input type="hidden" name="id_lieu" value="<?= $lieu->getLieuId() ?>">
 
                                         <input type="hidden" name="id_user" value="<?= $commentaire->getUserId() ?>">
@@ -549,6 +557,9 @@ header('Pragma: no-cache');
 
                                     <form method="post" action="index.php?controller=commenter&action=delete"
                                         onsubmit="return confirm('Voulez-vous vraiment supprimer ce commentaire ?');">
+
+                                        <input type="hidden" name="csrf_token"
+                                            value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                                         <input type="hidden" name="id_lieu" value="<?= $lieu->getLieuId() ?>">
 
@@ -604,6 +615,9 @@ header('Pragma: no-cache');
 
 
                     <form method="post" action="index.php?controller=commenter&action=store" class="space-y-5">
+
+                        <input type="hidden" name="csrf_token"
+                            value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                         <input type="hidden" name="id_lieu" value="<?= $lieu->getLieuId() ?>">
 

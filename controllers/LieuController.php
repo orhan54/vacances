@@ -8,6 +8,7 @@ require_once __DIR__ . '/../models/entity/Lieu.php';
 require_once __DIR__ . '/../models/dao/LieuDAO.php';
 require_once __DIR__ . '/../models/dao/LikeDAO.php';
 require_once __DIR__ . '/../models/dao/CommenterDAO.php';
+require_once __DIR__ . '/../middleware/Csrf.php';
 
 class LieuController
 {
@@ -72,6 +73,13 @@ class LieuController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php?controller=lieu&action=create');
             exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
         }
 
         // Récupère et nettoie les données du formulaire
@@ -199,6 +207,14 @@ class LieuController
             exit;
         }
 
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
+        }
+
         // Récupère et nettoie les données du formulaire
         $id = (int) ($_POST['id'] ?? 0);
         $nom = trim($_POST['nom'] ?? '');
@@ -209,18 +225,21 @@ class LieuController
         $prix = trim($_POST['prix'] ?? '');
         $image = trim($_POST['image'] ?? '');
 
-        // Vérifie si l'utilisateur est un administrateur
-        Auth::exigerAdmin();
+        // Vérifie que l'identifiant du lieu est valide
+        if ($id <= 0) {
+            http_response_code(400);
+            exit('Identifiant du lieu invalide.');
+        }
 
-        // Crée une instance de LieuDAO pour interagir avec la base de données
+        // Crée une instance de LieuDAO
         $lieuDAO = new LieuDAO();
 
         // Récupère le lieu existant pour conserver la date de création
         $lieuExistant = $lieuDAO->read($id);
 
-        // Si le lieu n'existe pas, affiche un message d'erreur
         if ($lieuExistant === null) {
-            die('Lieu introuvable.');
+            http_response_code(404);
+            exit('Lieu introuvable.');
         }
 
         // Crée un nouvel objet Lieu avec les données mises à jour
@@ -236,14 +255,14 @@ class LieuController
             $lieuExistant->getLieuCreatedAt()
         );
 
-        // Tente de mettre à jour le lieu dans la base de données
+        // Met à jour le lieu dans la base de données
         if ($lieuDAO->update($lieu)) {
             header('Location: index.php?controller=lieu&action=index');
             exit;
         }
 
-        // Si la mise à jour échoue, affiche un message d'erreur
-        die('Une erreur est survenue lors de la modification du lieu.');
+        http_response_code(500);
+        exit('Une erreur est survenue lors de la modification du lieu.');
     }
 
     /**
@@ -256,6 +275,13 @@ class LieuController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php?controller=lieu&action=index');
             exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
         }
 
         $id = (int) ($_POST['id'] ?? 0);

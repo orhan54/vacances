@@ -1,3 +1,9 @@
+<?php
+
+require_once 'middleware/Csrf.php';
+
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -41,6 +47,8 @@
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
 
             <form action="index.php?controller=user&action=store" method="post" class="space-y-6">
+                <input type="hidden" name="csrf_token"
+                    value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                 <!-- Prénom / Nom -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">

@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../middleware/Auth.php';
 require_once __DIR__ . '/../models/entity/Commenter.php';
 require_once __DIR__ . '/../models/dao/CommenterDAO.php';
+require_once __DIR__ . '/../middleware/Csrf.php';
 
 class CommenterController
 {
@@ -21,6 +22,13 @@ class CommenterController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php');
             exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
         }
 
         // Récupérer les données du formulaire
@@ -75,6 +83,13 @@ class CommenterController
             exit;
         }
 
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
+        }
+
         // Récupérer les données
         $idUser = (int) ($_SESSION['user_id'] ?? 0);
         $idLieu = (int) ($_POST['id_lieu'] ?? 0);
@@ -122,6 +137,13 @@ class CommenterController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php');
             exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
         }
 
         $idUserConnecte = (int) ($_SESSION['user_id'] ?? 0);

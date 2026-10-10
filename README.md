@@ -18,6 +18,7 @@ Les administrateurs disposent d'un espace permettant de gérer les lieux propos�
 - Gestion des sessions PHP
 - Gestion des rôles utilisateur / administrateur
 - Protection des actions sensibles avec le middleware `Auth`
+- Protection CSRF des formulaires d'authentification
 
 ### 🏠 Gestion des lieux
 
@@ -46,6 +47,8 @@ Les images sont contrôlées côté serveur :
 - Génération d'un nom de fichier aléatoire
 - Stockage dans `public/images/`
 
+Les formulaires de création, de modification et de suppression sont protégés contre les requêtes CSRF.
+
 ### ❤️ Likes
 
 Les utilisateurs connectés peuvent :
@@ -60,6 +63,8 @@ Le système utilise une clé primaire composée :
 ```text
 (Id_User, Id_Lieu)
 ```
+
+Les actions d'ajout et de retrait d'un Like utilisent une requête POST et une vérification du jeton CSRF côté serveur.
 
 ### ⭐ Commentaires et notation
 
@@ -76,6 +81,8 @@ La page des lieux affiche également :
 - La moyenne des notes
 - Le nombre total d'avis
 - La mention `Aucun avis` lorsqu'un lieu n'a encore reçu aucune note
+
+Les actions de création, de modification et de suppression des commentaires sont protégées contre les requêtes CSRF.
 
 Le JavaScript dédié aux commentaires est situé dans :
 
@@ -105,6 +112,8 @@ confirmee
 annulee
 ```
 
+La création et l'annulation des réservations sont protégées par une vérification CSRF côté serveur.
+
 ### 🗓️ Calendrier interactif
 
 Le calendrier des réservations utilise **Flatpickr**.
@@ -117,11 +126,13 @@ Le JavaScript permet notamment :
 - La gestion des dates de début et de fin
 - Le contrôle côté client avant l'envoi du formulaire
 
-Le fichier principal est :
+Le fichier principal est situé dans :
 
 ```text
 public/js/reservations/App.js
 ```
+
+La disponibilité est également vérifiée côté serveur afin de ne pas dépendre uniquement des contrôles réalisés dans le navigateur.
 
 ---
 
@@ -134,6 +145,7 @@ Le projet utilise une architecture **MVC + DAO** afin de séparer :
 - Les entités
 - Les contrôleurs
 - Les vues
+- Les mécanismes de sécurité transversaux
 
 ### 📁 Structure
 
@@ -157,7 +169,8 @@ vacances/
 │   └── LikeController.php
 │
 ├── middleware/
-│   └── Auth.php
+│   ├── Auth.php
+│   └── Csrf.php
 │
 ├── models/
 │   ├── entity/
@@ -308,18 +321,18 @@ Clé primaire composée :
 
 ## 🛠️ Technologies utilisées
 
-| Technologie  | Utilisation                             |
-| ------------ | --------------------------------------- |
-| PHP 8.2      | Back-end / programmation orientée objet |
-| MySQL        | Base de données                         |
-| PDO          | Accès sécurisé à la base de données     |
-| HTML5        | Structure des pages                     |
-| Tailwind CSS | Interface et mise en forme              |
-| JavaScript   | Interactions côté client                |
-| Flatpickr    | Calendrier des réservations             |
-| Lucide       | Icônes                                  |
-| Git / GitHub | Gestion de versions                     |
-| XAMPP        | Environnement de développement local    |
+| Technologie  | Utilisation                                        |
+| ------------ | -------------------------------------------------- |
+| PHP 8.2      | Back-end / programmation orientée objet            |
+| MySQL        | Base de données                                    |
+| PDO          | Accès à la base de données avec requêtes préparées |
+| HTML5        | Structure des pages                                |
+| Tailwind CSS | Interface et mise en forme                         |
+| JavaScript   | Interactions côté client                           |
+| Flatpickr    | Calendrier des réservations                        |
+| Lucide       | Icônes                                             |
+| Git / GitHub | Gestion de versions                                |
+| XAMPP        | Environnement de développement local               |
 
 ---
 
@@ -328,11 +341,14 @@ Clé primaire composée :
 Plusieurs mesures de sécurité sont mises en place :
 
 - Requêtes SQL préparées avec PDO
-- Hashage des mots de passe
-- Vérification des mots de passe
-- Gestion des sessions
-- Contrôle des rôles
+- Hashage sécurisé des mots de passe avec `password_hash()`
+- Vérification des mots de passe avec `password_verify()`
+- Gestion des sessions PHP
+- Contrôle des rôles utilisateur / administrateur
 - Protection des actions administrateur
+- Protection CSRF des formulaires et des actions sensibles
+- Validation des jetons CSRF côté serveur
+- Utilisation de requêtes POST pour les opérations qui modifient les données
 - Vérification des données reçues
 - Échappement HTML avec `htmlspecialchars()`
 - Contrôle des fichiers uploadés
@@ -340,6 +356,27 @@ Plusieurs mesures de sécurité sont mises en place :
 - Limitation de la taille des images
 - Génération aléatoire des noms de fichiers
 - Protection du fichier `.env` avec `.gitignore`
+
+### 🛡️ Protection contre les attaques CSRF
+
+La protection CSRF (_Cross-Site Request Forgery_) est implémentée dans le middleware dédié :
+
+```text
+middleware/Csrf.php
+```
+
+Elle repose sur les principes suivants :
+
+- Génération d'un jeton aléatoire associé à la session PHP.
+- Insertion du jeton dans les formulaires sensibles à l'aide d'un champ caché `csrf_token`.
+- Transmission du jeton lors de l'envoi du formulaire.
+- Validation du jeton côté serveur avant l'exécution de l'action.
+- Refus des requêtes lorsque le jeton est absent, invalide ou incorrect.
+- Utilisation de `hash_equals()` pour comparer les jetons de manière sécurisée.
+
+Les contrôleurs concernés vérifient le jeton avant d'exécuter les actions protégées. Cette protection complète les contrôles d'authentification, de rôle et de propriété des données.
+
+Un jeton CSRF valide ne remplace pas les vérifications de droits : chaque action sensible doit également contrôler que l'utilisateur est autorisé à l'effectuer.
 
 ---
 
@@ -386,20 +423,31 @@ La connexion à la base de données est centralisée dans :
 config/Database.php
 ```
 
-afin d'utiliser une connexion PDO unique.
+afin de réutiliser une instance de connexion PDO.
 
 ### Middleware
 
-La classe :
+Le projet utilise deux classes complémentaires.
 
-```text
-middleware/Auth.php
-```
+**`middleware/Auth.php`**
 
-permet notamment de vérifier :
+Permet notamment de vérifier :
 
-- si un utilisateur est connecté ;
-- si l'utilisateur possède le rôle administrateur.
+- Si un utilisateur est connecté.
+- Si l'utilisateur possède le rôle administrateur.
+- Si une action nécessite une authentification.
+- Si une action est réservée à l'administrateur.
+
+**`middleware/Csrf.php`**
+
+Permet notamment de :
+
+- Générer un jeton CSRF.
+- Fournir le jeton aux formulaires.
+- Vérifier le jeton transmis lors des requêtes.
+- Refuser les requêtes dont le jeton est absent ou invalide.
+
+La séparation entre ces deux classes permet de distinguer la gestion des autorisations de la protection contre les requêtes CSRF.
 
 ---
 
@@ -431,6 +479,8 @@ Pour créer une réservation :
 index.php?controller=reservation&action=create&id_lieu=8
 ```
 
+Les paramètres GET servent au routage et à l'affichage des pages. Les actions qui modifient les données utilisent des requêtes POST et appliquent les contrôles de sécurité nécessaires.
+
 ---
 
 ## 📅 Gestion des disponibilités
@@ -440,11 +490,12 @@ Lorsqu'un utilisateur souhaite réserver un lieu :
 1. Le lieu est récupéré depuis la base de données.
 2. Les réservations confirmées sont récupérées.
 3. Les périodes déjà réservées sont transmises au calendrier.
-4. `App.js` utilise ces informations avec Flatpickr.
-5. Les périodes indisponibles sont bloquées.
-6. Le serveur effectue également une vérification de disponibilité avant de créer la réservation.
+4. Le JavaScript utilise ces informations avec Flatpickr.
+5. Les périodes indisponibles sont bloquées dans le calendrier.
+6. Le serveur vérifie la disponibilité avant de créer la réservation.
+7. La requête est également protégée par un jeton CSRF.
 
-La vérification côté serveur reste obligatoire afin de garantir l'intégrité des réservations.
+La vérification côté serveur reste obligatoire afin de garantir l'intégrité des réservations, même si un utilisateur contourne les contrôles du navigateur.
 
 ---
 
@@ -499,7 +550,7 @@ La branche peut ensuite être fusionnée dans `dev`.
 
 ## 🌐 Hébergement en ligne
 
-L'application **Vacances** est désormais déployée en ligne sur **AwardSpace**.
+L'application **Vacances** est déployée en ligne sur **AwardSpace**.
 
 L'hébergement comprend :
 
@@ -544,6 +595,10 @@ Les informations sensibles de l'environnement local sont protégées par le fich
 - [x] Hashage sécurisé des mots de passe
 - [x] Gestion des sessions
 - [x] Protection par rôle avec la classe `Auth`
+- [x] Protection CSRF avec le middleware `Csrf`
+- [x] Génération et validation des jetons CSRF côté serveur
+- [x] Intégration des jetons CSRF dans les formulaires sensibles
+- [x] Test du refus d'une requête avec un jeton CSRF modifié
 - [x] CRUD des lieux réservé à l'administrateur
 - [x] Upload réel d'image pour un lieu
 - [x] Contrôle du format et de la taille des images
@@ -659,6 +714,7 @@ Ce projet a été réalisé afin de mettre en pratique et de démontrer des comp
 - Gestion des sessions
 - Gestion des rôles
 - Sécurité web
+- Protection CSRF
 - Upload de fichiers
 - JavaScript
 - Manipulation du DOM
@@ -681,11 +737,7 @@ Certaines améliorations pourront être ajoutées ultérieurement :
 - [ ] Gestion de plusieurs images par lieu
 - [ ] Galerie d'images
 - [ ] Système de réservation plus avancé
-- [ ] Tableau de bord administrateur
-- [ ] Gestion administrative des réservations
 - [ ] Notifications utilisateur
-- [ ] Amélioration des performances
-- [ ] Tests automatisés supplémentaires
 
 ---
 
