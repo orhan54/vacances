@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../middleware/Auth.php';
+require_once __DIR__ . '/../../middleware/Csrf.php';
 
 // Double sécurité côté vue.
 // Le contrôleur protège déjà cette page avec Auth::exigerAdmin().
@@ -111,6 +112,9 @@ Auth::exigerAdmin();
 
             <form action="index.php?controller=lieu&action=store" method="post" enctype="multipart/form-data"
                 class="space-y-6">
+
+                <input type="hidden" name="csrf_token"
+                    value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                 <!-- NOM -->
 

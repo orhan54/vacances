@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../middleware/Auth.php';
+require_once __DIR__ . '/../../middleware/Csrf.php';
 
 $isConnected = Auth::estConnecte();
 
@@ -113,15 +114,21 @@ $prenom = $_SESSION['user_prenom'] ?? null;
                         <?php endif; ?>
 
 
-                        <!-- Déconnexion -->
-                        <a href="index.php?controller=user&action=logout"
-                            class="mt-2 flex items-center justify-center gap-3 rounded-xl border border-white/30 bg-black/20 px-6 py-3.5 text-sm font-medium text-gray-200 backdrop-blur-sm transition duration-300 hover:bg-red-500/80 hover:text-white">
+                        <!-- Déconnexion protégée par CSRF -->
+                        <form method="POST" action="index.php?controller=user&action=logout">
 
-                            <i data-lucide="log-out" class="h-5 w-5"></i>
+                            <input type="hidden" name="csrf_token"
+                                value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
-                            <span>Se déconnecter</span>
+                            <button type="submit"
+                                class="mt-2 flex w-full items-center justify-center gap-3 rounded-xl border border-white/30 bg-black/20 px-6 py-3.5 text-sm font-medium text-gray-200 backdrop-blur-sm transition duration-300 hover:bg-red-500/80 hover:text-white">
+                                <i data-lucide="log-out" class="h-5 w-5"></i>
 
-                        </a>
+                                <span>Se déconnecter</span>
+                            </button>
+
+                        </form>
+
 
 
                     <?php else: ?>

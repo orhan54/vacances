@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../models/entity/User.php';
 require_once __DIR__ . '/../models/dao/UserDAO.php';
+require_once __DIR__ . '/../middleware/Auth.php';
+require_once __DIR__ . '/../middleware/Csrf.php';
 
 class UserController
 {
@@ -20,11 +22,20 @@ class UserController
     // Action pour traiter l'inscription d'un nouvel utilisateur
     public function store(): void
     {
+        // Vérifier que la requête est bien de type POST
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php?controller=user&action=register');
             exit;
         }
 
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
+        }
+
+        // Récupérer les données du formulaire
         $prenom = trim($_POST['prenom'] ?? '');
         $nom = trim($_POST['nom'] ?? '');
         $adresse = trim($_POST['adresse'] ?? '');
@@ -40,6 +51,7 @@ class UserController
 
         $userDAO = new UserDAO();
 
+        // Vérifier si l'email est déjà utilisé
         if ($userDAO->findByEmail($email) !== null) {
             die('Cette adresse email est déjà utilisée.');
         }
@@ -79,6 +91,13 @@ class UserController
             exit;
         }
 
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
+        }
+
         $email = trim($_POST['email'] ?? '');
         $mp = $_POST['mp'] ?? '';
 
@@ -108,9 +127,24 @@ class UserController
     // Action pour déconnecter l'utilisateur
     public function logout(): void
     {
+        // Vérifier que la requête est de type POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?controller=user&action=welcome');
+            exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
+        }
+
         session_unset();
         session_destroy();
-        header('Location: index.php?controller=auth&action=welcome');
+
+        header('Location: index.php?controller=user&action=login');
         exit;
     }
 }

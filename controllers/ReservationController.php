@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../middleware/Auth.php';
 require_once __DIR__ . '/../models/entity/Reservation.php';
 require_once __DIR__ . '/../models/dao/ReservationDAO.php';
+require_once __DIR__ . '/../middleware/Csrf.php';
 
 class ReservationController
 {
@@ -70,6 +71,13 @@ class ReservationController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php?controller=reservation&action=create');
             exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
         }
 
         // Récupère l'ID de l'utilisateur connecté depuis la session
@@ -144,6 +152,13 @@ class ReservationController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: index.php?controller=reservation&action=index');
             exit;
+        }
+
+        // Vérification du token CSRF
+        $token = $_POST['csrf_token'] ?? null;
+        if (!Csrf::validateToken($token)) {
+            http_response_code(403);
+            exit('Erreur CSRF : requête non autorisée.');
         }
 
         // Récupère l'identifiant de la réservation

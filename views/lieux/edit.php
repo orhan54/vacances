@@ -1,3 +1,10 @@
+<?php
+
+require_once __DIR__ . '/../../middleware/Csrf.php';
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -51,6 +58,8 @@
 
             <!-- Formulaire -->
             <form action="index.php?controller=lieu&action=update" method="post" class="p-8 space-y-6">
+                <input type="hidden" name="csrf_token"
+                    value="<?= htmlspecialchars(Csrf::getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
                 <!-- Identifiant -->
                 <input type="hidden" name="id" value="<?= htmlspecialchars((string) $lieu->getLieuId()) ?>">
