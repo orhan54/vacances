@@ -4,6 +4,11 @@ Application web de réservation de lieux développée en **PHP 8.2 orienté obje
 
 Les administrateurs disposent d'un espace permettant de gérer les lieux proposés à la réservation.
 
+🔗 **Démo en ligne : [vacancesapp.atwebpages.com](https://vacancesapp.atwebpages.com/)**
+
+> [!NOTE]
+> Le certificat HTTPS de l'hébergement gratuit est en cours de configuration : le navigateur peut afficher « Votre connexion n'est pas privée ». Cliquer sur « Paramètres avancés », puis « Continuer vers vacancesapp.atwebpages.com ». Si vous créez un compte pour tester, n'utilisez pas un mot de passe employé ailleurs.
+
 ---
 
 ## 🚀 Fonctionnalités
@@ -564,6 +569,9 @@ L'hébergement comprend :
 L'application est disponible à l'adresse suivante :
 
 **https://vacancesapp.atwebpages.com/**
+
+> [!WARNING]
+> **Limite connue de l'hébergement gratuit :** le sous-domaine `atwebpages.com` n'a pas de certificat HTTPS reconnu par les navigateurs. Au premier accès, une page d'avertissement s'affiche (« Votre connexion n'est pas privée »). Le site reste utilisable après avoir cliqué sur « Paramètres avancés » puis « Continuer ». La mise en place d'un certificat valide est prévue.
 
 La base de données distante contient les tables :
 
